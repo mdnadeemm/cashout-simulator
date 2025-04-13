@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Cashout Simulator</title>
+    <style>
+        /* Previous CSS remains unchanged until .output-box */
+        .output-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+        }
+        .cashout-value {
+            font-size: 2em;
+            color: #4caf50;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .profit-display {
+            font-size: 1.5em;
+            color: #ffd700;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+        .output-label {
+            font-weight: bold;
+            color: #ddd;
+        }
+        .output-amount {
+            font-weight: bold;
+            color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Previous HTML remains unchanged until output box -->
+    <div class="output-box">
+        <div class="output-row">
+            <span class="output-label">Total Profit:</span>
+            <span class="output-amount" id="profit-value">₹0.00</span>
+        </div>
+        <div class="output-row">
+            <span class="output-label">Total Cashout:</span>
+            <span class="output-amount" id="cashout-value">₹0.00</span>
+        </div>
+    </div>
+
+    <script>
+        // Previous JavaScript remains unchanged until calculateTotalCashout()
+        function calculateTotalCashout() {
+            const margin = parseFloat(document.getElementById('margin').value)/100;
+            const currentOdds = parseFloat(currentOddsInput.value);
+            
+            let totalStakes = 0;
+            let totalCashout = 0;
+            
+            document.querySelectorAll('.bet-entry').forEach(bet => {
+                const stake = parseFloat(bet.querySelector('.bet-stake').value) || 0;
+                const originalOdds = parseFloat(bet.querySelector('.bet-odds').value) || 0;
+                
+                if(stake > 0 && originalOdds > 0) {
+                    totalStakes += stake;
+                    const potential = stake * originalOdds;
+                    const fairValue = potential / currentOdds;
+                    totalCashout += fairValue * (1 - margin);
+                }
+            });
+            
+            const totalProfit = totalCashout - totalStakes;
+            
+            document.getElementById('cashout-value').textContent = `₹${totalCashout.toFixed(2)}`;
+            document.getElementById('profit-value').textContent = `₹${totalProfit.toFixed(2)}`;
+            document.getElementById('profit-value').style.color = totalProfit >= 0 ? '#4caf50' : '#ff4444';
+        }
+    </script>
+</body>
+</html>
