@@ -5,7 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cricket Cashout Simulator</title>
     <style>
-        /* Previous CSS remains unchanged until .output-box */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #ffd700;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #4caf50;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #4caf50;
+            border-radius: 50%;
+            cursor: pointer;
+        }
         .output-box {
             background: rgba(0, 0, 0, 0.3);
             padding: 15px;
@@ -19,71 +81,171 @@
             text-align: center;
             margin: 15px 0;
         }
-        .profit-display {
-            font-size: 1.5em;
-            color: #ffd700;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-        }
-        .output-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
+        button {
+            padding: 12px;
+            background: #4caf50;
+            color: white;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-        .output-label {
-            font-weight: bold;
-            color: #ddd;
+        button:hover {
+            background: #45a049;
         }
-        .output-amount {
-            font-weight: bold;
-            color: #4caf50;
+        .bet-entry {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .remove-bet {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #ff4444;
+            padding: 5px 10px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 15px;
+        }
+        .flex-row > div {
+            flex: 1;
         }
     </style>
 </head>
 <body>
-    <!-- Previous HTML remains unchanged until output box -->
-    <div class="output-box">
-        <div class="output-row">
-            <span class="output-label">Total Profit:</span>
-            <span class="output-amount" id="profit-value">₹0.00</span>
+    <div class="container">
+        <h1>🏏 Multi-Bet Cashout Simulator</h1>
+        
+        <!-- Live Match Controls -->
+        <div class="form-group">
+            <label for="current-odds">Current Live Odds:</label>
+            <input type="number" id="current-odds" value="1.80" step="0.01" min="0.10" max="10.00">
         </div>
-        <div class="output-row">
-            <span class="output-label">Total Cashout:</span>
-            <span class="output-amount" id="cashout-value">₹0.00</span>
+        
+        <div class="form-group">
+            <label for="odds-slider">Adjust Live Odds:</label>
+            <input type="range" id="odds-slider" min="0.10" max="10.00" value="1.80" step="0.01" class="slider">
+        </div>
+
+        <div class="form-group">
+            <label for="margin">Bookmaker Margin (%):</label>
+            <input type="number" id="margin" value="10" min="0" max="50" step="1">
+        </div>
+
+        <!-- Bets Container -->
+        <div id="bets-container">
+            <div class="bet-entry">
+                <button class="remove-bet" onclick="removeBet(this)">×</button>
+                <div class="flex-row">
+                    <div>
+                        <label>Stake (₹)</label>
+                        <input type="number" class="bet-stake" value="1000" min="100" step="100">
+                    </div>
+                    <div>
+                        <label>Original Odds</label>
+                        <input type="number" class="bet-odds" value="3.00" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="addBet()" style="margin-bottom: 20px;">➕ Add Another Bet</button>
+
+        <!-- Results -->
+        <div class="output-box">
+            <div>Total Cashout Offer:</div>
+            <div class="cashout-value" id="cashout-value">₹0.00</div>
         </div>
     </div>
 
     <script>
-        // Previous JavaScript remains unchanged until calculateTotalCashout()
+        // Initialize
+        const oddsSlider = document.getElementById('odds-slider');
+        const currentOddsInput = document.getElementById('current-odds');
+        
+        // Sync slider and input with decimal precision
+        function updateOdds() {
+            const sliderValue = parseFloat(oddsSlider.value).toFixed(2);
+            const inputValue = parseFloat(currentOddsInput.value).toFixed(2);
+            
+            oddsSlider.value = sliderValue;
+            currentOddsInput.value = sliderValue;
+            
+            calculateTotalCashout();
+        }
+
+        oddsSlider.addEventListener('input', () => {
+            currentOddsInput.value = parseFloat(oddsSlider.value).toFixed(2);
+            calculateTotalCashout();
+        });
+
+        currentOddsInput.addEventListener('input', () => {
+            let value = parseFloat(currentOddsInput.value);
+            if (isNaN(value)) value = 1.80;
+            value = Math.min(10, Math.max(0.10, value));
+            currentOddsInput.value = value.toFixed(2);
+            oddsSlider.value = value;
+            calculateTotalCashout();
+        });
+
+        // Bet management
+        function addBet() {
+            const newBet = document.querySelector('.bet-entry').cloneNode(true);
+            newBet.querySelectorAll('input').forEach(input => input.value = '');
+            newBet.querySelector('.bet-stake').value = '';
+            newBet.querySelector('.bet-odds').value = '';
+            document.getElementById('bets-container').appendChild(newBet);
+            addInputListeners(newBet);
+        }
+
+        function removeBet(btn) {
+            if(document.querySelectorAll('.bet-entry').length > 1) {
+                btn.parentElement.remove();
+                calculateTotalCashout();
+            }
+        }
+
+        // Calculations
         function calculateTotalCashout() {
             const margin = parseFloat(document.getElementById('margin').value)/100;
             const currentOdds = parseFloat(currentOddsInput.value);
             
-            let totalStakes = 0;
-            let totalCashout = 0;
+            let total = 0;
             
             document.querySelectorAll('.bet-entry').forEach(bet => {
                 const stake = parseFloat(bet.querySelector('.bet-stake').value) || 0;
                 const originalOdds = parseFloat(bet.querySelector('.bet-odds').value) || 0;
                 
                 if(stake > 0 && originalOdds > 0) {
-                    totalStakes += stake;
                     const potential = stake * originalOdds;
                     const fairValue = potential / currentOdds;
-                    totalCashout += fairValue * (1 - margin);
+                    total += fairValue * (1 - margin);
                 }
             });
             
-            const totalProfit = totalCashout - totalStakes;
-            
-            document.getElementById('cashout-value').textContent = `₹${totalCashout.toFixed(2)}`;
-            document.getElementById('profit-value').textContent = `₹${totalProfit.toFixed(2)}`;
-            document.getElementById('profit-value').style.color = totalProfit >= 0 ? '#4caf50' : '#ff4444';
+            document.getElementById('cashout-value').textContent = 
+                `₹${total.toFixed(2)}`;
         }
+
+        // Event listeners
+        function addInputListeners(bet) {
+            bet.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', calculateTotalCashout);
+            });
+        }
+
+        // Initial setup
+        document.querySelectorAll('.bet-entry').forEach(addInputListeners);
+        document.querySelectorAll('input').forEach(input => {
+            if(input.id !== 'current-odds') {
+                input.addEventListener('input', calculateTotalCashout);
+            }
+        });
+        calculateTotalCashout();
     </script>
 </body>
 </html>
